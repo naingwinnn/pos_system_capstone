@@ -1,29 +1,56 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// // App.jsx
+// import React from 'react';
+// // import ShopDashboard from './superadmin/shopDashboard';
+// import CustomerDashboard from './customer/CustomerDashboard';
 
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
+// function App() {
+//   return (
+//     <div className="App">
+//       <CustomerDashboard />
+//     </div>
+//   );
+// }
 
-import Dashboard from "./pages/superadmin/Dashboard";
-import Branches from "./pages/superadmin/Branches";
-import AdminUsers from "./pages/superadmin/AdminUsers";
-import InventoryReport from "./pages/superadmin/InventoryReport";
-import SystemSettings from "./pages/superadmin/SystemSettings";
+// export default App;
+// // import React from 'react';
+// // import ShopDashboard from './superadmin/shopDashboard';
+// // function App() {
+// //   return (
+// //     <div className="App">
+// //       <ShopDashboard />
+// //     </div>
+// //   );
+// // }
 
-import "./style.css";
+// // export default App;
+
+
+
+
+// 
+
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import CustomerDashboard from './components/customer/CustomerDashboard';
+import ShopPage from './components/customer/ShopPage';
+import './styles/App.css';
 
 function App() {
   return (
     <Router>
-      <Navbar />
-      <Sidebar />
-      <div className="main">
+      <div className="App">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/branches" element={<Branches />} />
-          <Route path="/admins" element={<AdminUsers />} />
-          <Route path="/inventory" element={<InventoryReport />} />
-          <Route path="/settings" element={<SystemSettings />} />
+          <Route path="/" element={<CustomerDashboard />} />
+          <Route path="/shop/:id" element={<ShopPage />} />
+          <Route path="*" element={
+            <div className="not-found">
+              <div className="not-found-container">
+                <h1>404 - Page Not Found</h1>
+                <p>The page you're looking for doesn't exist.</p>
+                <a href="/" className="home-link">Go to Homepage</a>
+              </div>
+            </div>
+          } />
         </Routes>
       </div>
     </Router>
