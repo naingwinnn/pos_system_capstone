@@ -1,15 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { shops } from "../../data/shopsData";
-import "./ShopPage.css"; 
+import { useCart } from "../../context/CartContext"; // Import useCart
+import "./ShopPage.css";
+
 const ShopPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [cart, setCart] = useState([]);
-  const [quantities, setQuantities] = useState({});
+  
+  // Use the global cart context
+  const { 
+    addToCart: globalAddToCart, 
+    updateQuantity: globalUpdateQuantity,
+    removeFromCart: globalRemoveFromCart,
+    quantities: globalQuantities,
+    getShopCart,
+    getShopCartTotal,
+    getShopCartCount,
+    setCartVisible 
+  } = useCart(); // Now properly used
+
   const [activeTab, setActiveTab] = useState("all");
 
   const shop = shops.find(s => s.id === parseInt(id));
+  
+  // Get cart items specific to this shop
+  const shopCart = getShopCart(parseInt(id));
+  const shopCartCount = getShopCartCount(parseInt(id));
+  const shopCartTotal = getShopCartTotal(parseInt(id));
 
   useEffect(() => {
     if (shop) {
@@ -34,48 +52,29 @@ const ShopPage = () => {
     );
   }
 
-  const addToCart = (product) => {
-    const existingItem = cart.find(item => item.id === product.id);
-    if (existingItem) {
-      setQuantities({
-        ...quantities,
-        [product.id]: (quantities[product.id] || 1) + 1
-      });
-    } else {
-      setCart([...cart, product]);
-      setQuantities({
-        ...quantities,
-        [product.id]: 1
-      });
-    }
-  };
-
-  const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.id !== productId));
-    const newQuantities = { ...quantities };
-    delete newQuantities[productId];
-    setQuantities(newQuantities);
-  };
-
-  const updateQuantity = (productId, newQty) => {
-    if (newQty < 1) {
-      removeFromCart(productId);
-      return;
-    }
-    setQuantities({
-      ...quantities,
-      [productId]: newQty
+  const handleAddToCart = (product) => {
+    globalAddToCart({
+      ...product,
+      shopId: shop.id,
+      shopName: shop.name,
+      image: product.image || shop.image // Add image for cart display
     });
+    setCartVisible(true); // Show cart when item is added
   };
 
-  const getCartTotal = () => {
-    return cart.reduce((total, item) => {
-      return total + (item.price * (quantities[item.id] || 1));
-    }, 0).toFixed(2);
+  const handleUpdateQuantity = (productId, newQty) => {
+    globalUpdateQuantity(productId, newQty);
   };
 
-  const getCartCount = () => {
-    return Object.values(quantities).reduce((sum, qty) => sum + qty, 0);
+  const handleRemoveFromCart = (productId) => {
+    globalRemoveFromCart(productId, shop.id);
+  };
+
+  const clearShopCart = () => {
+    // Remove all items from this shop's cart
+    shopCart.forEach(item => {
+      globalRemoveFromCart(item.id, shop.id);
+    });
   };
 
   const productCategories = [...new Set(shop.products.map(p => p.category))];
@@ -83,27 +82,51 @@ const ShopPage = () => {
     ? shop.products 
     : shop.products.filter(p => p.category === activeTab);
 
-  const clearCart = () => {
-    setCart([]);
-    setQuantities({});
+  const getDeliveryTime = () => {
+    const times = shop.deliveryTime.split("-");
+    if (times.length === 2) {
+      return `${times[0].trim()} min`;
+    }
+    return shop.deliveryTime;
   };
+
+  const deliveryFee = 2.99;
+  const serviceFee = 1.49;
+  const subtotal = parseFloat(shopCartTotal || 0);
+  const total = subtotal + deliveryFee + serviceFee;
 
   return (
     <div className="shop-page">
       {/* Header */}
       <header className="shop-header">
-        <button 
-          onClick={() => navigate("/")} 
-          className="back-to-dashboard"
-        >
-          ← Back to Shops
-        </button>
+        <div className="shop-header-top">
+          <button 
+            onClick={() => navigate("/")} 
+            className="back-to-dashboard"
+          >
+            ← Back to Shops
+          </button>
+          <div className="header-actions">
+            <button 
+              onClick={() => navigate("/profile")}
+              className="profile-btn"
+            >
+              👤 Profile
+            </button>
+            <button 
+              onClick={() => navigate("/cart")}
+              className="cart-btn-header"
+            >
+              🛒 Cart ({shopCartCount})
+            </button>
+          </div>
+        </div>
         
         <div className="shop-header-content">
           <div className="shop-header-image">
             <img src={shop.image} alt={shop.name} />
             <div className="shop-rating-badge">
-              ⭐ {shop.rating} • {shop.deliveryTime}
+              ⭐ {shop.rating} • {getDeliveryTime()}
             </div>
           </div>
           
@@ -158,142 +181,175 @@ const ShopPage = () => {
           </div>
 
           <div className="products-grid">
-            {filteredProducts.map(product => (
-              <div key={product.id} className="product-card">
-                <div className="product-info">
-                  <h3>{product.name}</h3>
-                  <p className="product-category">{product.category}</p>
-                  <div className="product-price-row">
-                    <span className="product-price">${product.price}</span>
-                    {quantities[product.id] && (
-                      <span className="in-cart-badge">
-                        {quantities[product.id]} in cart
-                      </span>
+            {filteredProducts.map(product => {
+              const quantityInCart = globalQuantities[product.id] || 0;
+              
+              return (
+                <div key={product.id} className="product-card">
+                  <div className="product-info">
+                    <h3>{product.name}</h3>
+                    <p className="product-category">{product.category}</p>
+                    <div className="product-price-row">
+                      <span className="product-price">${product.price}</span>
+                      {quantityInCart > 0 && (
+                        <span className="in-cart-badge">
+                          {quantityInCart} in cart
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="product-actions">
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="add-to-cart-btn"
+                    >
+                      Add to Cart
+                    </button>
+                    {quantityInCart > 0 && (
+                      <div className="quantity-controls">
+                        <button
+                          onClick={() => handleUpdateQuantity(product.id, quantityInCart - 1)}
+                          className="quantity-btn minus"
+                        >
+                          –
+                        </button>
+                        <span className="quantity-display">{quantityInCart}</span>
+                        <button
+                          onClick={() => handleUpdateQuantity(product.id, quantityInCart + 1)}
+                          className="quantity-btn plus"
+                        >
+                          +
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
-                <div className="product-actions">
-                  <button
-                    onClick={() => addToCart(product)}
-                    className="add-to-cart-btn"
-                  >
-                    Add to Cart
-                  </button>
-                  {quantities[product.id] && (
-                    <div className="quantity-controls">
-                      <button
-                        onClick={() => updateQuantity(product.id, quantities[product.id] - 1)}
-                        className="quantity-btn minus"
-                      >
-                        –
-                      </button>
-                      <span className="quantity-display">{quantities[product.id]}</span>
-                      <button
-                        onClick={() => updateQuantity(product.id, quantities[product.id] + 1)}
-                        className="quantity-btn plus"
-                      >
-                        +
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Cart Section */}
-        <div className="cart-section">
-          <div className="cart-header">
-            <h2>Your Cart</h2>
-            <div className="cart-stats">
-              <span className="cart-count">{getCartCount()} items</span>
-              {cart.length > 0 && (
-                <button onClick={clearCart} className="clear-cart-btn">
+        {/* Order Summary Section */}
+        <div className="order-summary-section">
+          <div className="order-summary-card">
+            <div className="order-summary-header">
+              <div className="header-left">
+                <h2>Order Summary</h2>
+                <span className="items-count">{shopCartCount} items</span>
+              </div>
+              {shopCart.length > 0 && (
+                <button onClick={clearShopCart} className="clear-all-btn">
                   Clear All
                 </button>
               )}
             </div>
-          </div>
 
-          <div className="cart-content">
-            {cart.length === 0 ? (
-              <div className="empty-cart">
-                <div className="empty-cart-icon">🛒</div>
-                <h3>Your cart is empty</h3>
-                <p>Add some delicious items to get started!</p>
+            {shopCart.length === 0 ? (
+              <div className="empty-order">
+                <div className="empty-icon">🛒</div>
+                <p>Your cart is empty</p>
+                <small>Add items from the menu to start your order</small>
               </div>
             ) : (
               <>
-                <div className="cart-items">
-                  {cart.map(item => (
-                    <div key={item.id} className="cart-item">
-                      <div className="cart-item-info">
-                        <h4>{item.name}</h4>
-                        <p className="cart-item-category">{item.category}</p>
-                        <p className="cart-item-price">${item.price} each</p>
-                      </div>
-                      <div className="cart-item-controls">
-                        <div className="cart-quantity">
-                          <button
-                            onClick={() => updateQuantity(item.id, quantities[item.id] - 1)}
-                            className="cart-quantity-btn"
-                          >
-                            –
-                          </button>
-                          <span className="cart-quantity-display">
-                            {quantities[item.id]}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.id, quantities[item.id] + 1)}
-                            className="cart-quantity-btn"
-                          >
-                            +
-                          </button>
+                <div className="order-items-list">
+                  {shopCart.map(item => {
+                    const qty = globalQuantities[item.id] || 1;
+                    return (
+                      <div key={item.id} className="order-item">
+                        <div className="item-main">
+                          <span className="item-name">{item.name}</span>
+                          <span className="item-category">{item.category}</span>
                         </div>
-                        <div className="cart-item-total">
-                          ${(item.price * quantities[item.id]).toFixed(2)}
+                        <div className="item-controls">
+                          <div className="quantity-selector">
+                            <button
+                              onClick={() => handleUpdateQuantity(item.id, qty - 1)}
+                              className="qty-btn"
+                            >
+                              −
+                            </button>
+                            <span className="qty-display">{qty}</span>
+                            <button
+                              onClick={() => handleUpdateQuantity(item.id, qty + 1)}
+                              className="qty-btn"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <div className="item-price-section">
+                            <span className="item-price">
+                              ${(item.price * qty).toFixed(2)}
+                            </span>
+                            <button
+                              onClick={() => handleRemoveFromCart(item.id)}
+                              className="remove-btn"
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="remove-item-btn"
-                        >
-                          ✕
-                        </button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                <div className="cart-summary">
-                  <div className="summary-row">
+                <div className="price-breakdown">
+                  <div className="price-row">
                     <span>Subtotal</span>
-                    <span>${getCartTotal()}</span>
+                    <span>${subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="summary-row">
+                  <div className="price-row">
                     <span>Delivery Fee</span>
-                    <span>$2.99</span>
+                    <span>${deliveryFee.toFixed(2)}</span>
                   </div>
-                  <div className="summary-row">
+                  <div className="price-row">
                     <span>Service Fee</span>
-                    <span>$1.49</span>
+                    <span>${serviceFee.toFixed(2)}</span>
                   </div>
-                  <div className="summary-row total">
+                  <div className="price-row total">
                     <span>Total</span>
-                    <span>${(parseFloat(getCartTotal()) + 2.99 + 1.49).toFixed(2)}</span>
+                    <span>${total.toFixed(2)}</span>
                   </div>
+                </div>
 
-                  <div className="cart-actions">
-                    <button className="checkout-btn">
-                      🛒 Proceed to Checkout (${(parseFloat(getCartTotal()) + 2.99 + 1.49).toFixed(2)})
-                    </button>
-                    <p className="delivery-estimate">
-                      Estimated delivery: {shop.deliveryTime}
-                    </p>
-                  </div>
+                <button 
+                  onClick={() => navigate("/checkout")}
+                  className="checkout-btn"
+                  disabled={shopCart.length === 0}
+                >
+                  Proceed to Checkout
+                </button>
+                
+                <p className="delivery-estimate">
+                  ⏱️ Estimated delivery: {getDeliveryTime()}
+                </p>
+
+                <div className="additional-actions">
+                  <button 
+                    onClick={() => navigate("/cart")}
+                    className="view-full-cart-btn"
+                  >
+                    View Full Cart Details →
+                  </button>
                 </div>
               </>
             )}
+          </div>
+
+          <div className="shop-actions">
+            <button 
+              onClick={() => navigate("/profile")}
+              className="view-profile-btn"
+            >
+              👤 View Profile
+            </button>
+            <button 
+              onClick={() => navigate("/")}
+              className="continue-shopping-btn"
+            >
+              🛍️ Continue Shopping
+            </button>
           </div>
         </div>
       </div>
