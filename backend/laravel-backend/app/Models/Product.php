@@ -13,5 +13,10 @@ class Product extends Model
     protected $fillable = [
         'name',
         'price',
+        'image',
+        'created_at',
     ];
+    public function shop() { return $this->belongsTo(Shop::class); }
+    public function stock() { return $this->hasOne(ProductStock::class); }
+
 }
