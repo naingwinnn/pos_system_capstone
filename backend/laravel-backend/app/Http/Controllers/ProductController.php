@@ -1,15 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use Illuminate\Http\Request;
+use App\Models\Product;
 
 class ProductController extends Controller
 {
-    public function index(){
-        return response()->json([
-            'message' => 'Success'
-        ], 200);
-
+    public function index()
+    {
+        return response()->json(
+            ['data' => Product::all()
+        ],200);
     }
 }
