@@ -17,5 +17,13 @@ class Shop extends Model
     ];
     public function products() { return $this->hasMany(Product::class); }
     public function owner() { return $this->belongsTo(User::class, 'user_id'); }
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
 }

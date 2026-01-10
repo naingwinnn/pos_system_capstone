@@ -26,14 +26,22 @@ class DatabaseSeeder extends Seeder
 
         // 4️⃣ Orders + OrderItems
         Order::factory()->count(10)->create()->each(function($order){
+            // Pick 1-3 random products
             $products = Product::inRandomOrder()->take(fake()->numberBetween(1,3))->get();
+
+            // If there are products, pick the shop_id from the first product
+            $shop_id = $products->first()->shop_id ?? 1; // fallback to 1 if no product
+
+            // Assign shop_id to order
+            $order->update(['shop_id' => $shop_id]);
+
             foreach($products as $product){
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'quantity' => fake()->numberBetween(1,5),
                     'price' => $product->price,
-                    // 'shop_id' => $product->shop_id // optional
+                    //'shop_id' => $product->shop_id, // include shop_id in order items
                 ]);
             }
 

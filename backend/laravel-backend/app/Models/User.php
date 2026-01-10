@@ -52,7 +52,10 @@ class User extends Authenticatable implements FilamentUser
     }
     public function shop() { return $this->hasOne(Shop::class); }
     public function orders() { return $this->hasMany(Order::class); }
-
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
 
     public function isAdmin()
     {
