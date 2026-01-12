@@ -47,6 +47,16 @@ export const AuthProvider = ({ children }) => {
           avatar: registeredUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(registeredUser.name)}&background=667eea&color=fff&bold=true`
         };
         
+        // Add shop-specific data if user is a vendor
+        if (registeredUser.role === 'vendor') {
+          userData.shopName = registeredUser.shopName;
+          userData.shopType = registeredUser.shopType;
+          userData.shopAddress = registeredUser.shopAddress;
+          userData.shopCity = registeredUser.shopCity;
+          userData.shopZipCode = registeredUser.shopZipCode;
+          userData.shopVerified = registeredUser.shopVerified || false;
+        }
+        
         const token = 'mock-jwt-token-' + Date.now();
         
         setUser(userData);
@@ -66,7 +76,7 @@ export const AuthProvider = ({ children }) => {
           phone: '+1 (555) 123-4567',
           address: '123 Main St, New York, NY 10001',
           joinedDate: '2024-01-15',
-          password: 'demo123'  // Add password field
+          password: 'demo123'
         },
         { 
           id: 2, 
@@ -74,9 +84,14 @@ export const AuthProvider = ({ children }) => {
           name: 'Jane Smith', 
           role: 'vendor',
           shopName: 'Burger Palace',
+          shopType: 'Restaurant/Cafe',
+          shopAddress: '456 Food Street',
+          shopCity: 'New York',
+          shopZipCode: '10002',
+          shopVerified: true,
           phone: '+1 (555) 987-6543',
           joinedDate: '2024-02-20',
-          password: 'demo123'  // Add password field
+          password: 'demo123'
         },
         { 
           id: 3, 
@@ -85,7 +100,7 @@ export const AuthProvider = ({ children }) => {
           role: 'admin',
           phone: '+1 (555) 456-7890',
           joinedDate: '2024-01-01',
-          password: 'demo123'  // Add password field
+          password: 'demo123'
         }
       ];
       
@@ -99,10 +114,19 @@ export const AuthProvider = ({ children }) => {
           role: mockUser.role,
           phone: mockUser.phone,
           address: mockUser.address,
-          shopName: mockUser.shopName,
           joinedDate: mockUser.joinedDate,
           avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(mockUser.name)}&background=667eea&color=fff&bold=true`
         };
+        
+        // Add shop-specific data if user is a vendor
+        if (mockUser.role === 'vendor') {
+          userData.shopName = mockUser.shopName;
+          userData.shopType = mockUser.shopType;
+          userData.shopAddress = mockUser.shopAddress;
+          userData.shopCity = mockUser.shopCity;
+          userData.shopZipCode = mockUser.shopZipCode;
+          userData.shopVerified = mockUser.shopVerified;
+        }
         
         const token = 'mock-jwt-token-' + Date.now();
         
@@ -149,7 +173,6 @@ export const AuthProvider = ({ children }) => {
         address: userData.address || '',
         joinedDate: new Date().toISOString().split('T')[0],
         avatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&background=667eea&color=fff&bold=true`,
-        // IMPORTANT: Save the password for login verification
         password: userData.password
       };
       
@@ -168,6 +191,81 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Registration error:', error);
       return { success: false, error: 'Registration failed' };
+    }
+  };
+
+  const registerShop = async (shopData) => {
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Get existing registered users (shops are stored here too)
+      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      
+      // Check if email already exists
+      if (registeredUsers.some(u => u.email === shopData.email)) {
+        return { success: false, error: 'Email already registered' };
+      }
+      
+      // Check if shop name already exists
+      if (registeredUsers.some(u => u.shopName && u.shopName.toLowerCase() === shopData.shopName.toLowerCase())) {
+        return { success: false, error: 'Shop name already taken' };
+      }
+      
+      const newShop = {
+        id: Date.now(),
+        email: shopData.email,
+        name: shopData.ownerName,
+        role: 'vendor',
+        phone: shopData.phone,
+        address: shopData.address,
+        joinedDate: new Date().toISOString().split('T')[0],
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(shopData.shopName)}&background=10b981&color=fff&bold=true`,
+        // Shop-specific fields
+        shopName: shopData.shopName,
+        shopType: shopData.shopType,
+        shopAddress: shopData.address,
+        shopCity: shopData.city,
+        shopZipCode: shopData.zipCode,
+        shopVerified: false,
+        shopRegistrationDate: new Date().toISOString(),
+        shopStatus: 'pending',
+        password: shopData.password
+      };
+      
+      // Save to registered users list
+      registeredUsers.push(newShop);
+      localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+      
+      // Also save as current user and login automatically
+      const token = 'mock-jwt-token-' + Date.now();
+      
+      setUser(newShop);
+      localStorage.setItem('pos-user', JSON.stringify(newShop));
+      localStorage.setItem('pos-token', token);
+      
+      // Store in separate shops list for management
+      const registeredShops = JSON.parse(localStorage.getItem('registeredShops') || '[]');
+      registeredShops.push({
+        id: newShop.id,
+        shopName: newShop.shopName,
+        ownerName: newShop.name,
+        email: newShop.email,
+        phone: newShop.phone,
+        shopType: newShop.shopType,
+        address: newShop.address,
+        city: newShop.shopCity,
+        zipCode: newShop.shopZipCode,
+        status: newShop.shopStatus,
+        verified: newShop.shopVerified,
+        registrationDate: newShop.shopRegistrationDate
+      });
+      localStorage.setItem('registeredShops', JSON.stringify(registeredShops));
+      
+      return { success: true, user: newShop };
+    } catch (error) {
+      console.error('Shop registration error:', error);
+      return { success: false, error: 'Shop registration failed' };
     }
   };
 
@@ -201,45 +299,181 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ADD THIS NEW FUNCTION for changing password
   const changePassword = async (currentPassword, newPassword) => {
     try {
       if (!user) {
         return { success: false, error: 'No user logged in' };
       }
 
-      // Get registered users
-      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-      const userIndex = registeredUsers.findIndex(u => u.id === user.id);
-      
-      if (userIndex === -1) {
-        return { success: false, error: 'User not found in registered users' };
-      }
-      
-      // Verify current password
-      const currentUser = registeredUsers[userIndex];
-      if (currentUser.password !== currentPassword) {
-        return { success: false, error: 'Current password is incorrect' };
-      }
-      
-      // Validate new password
+      // Enhanced password validation
       if (newPassword.length < 6) {
         return { success: false, error: 'New password must be at least 6 characters' };
       }
+
+      // Get all user data from localStorage
+      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      const mockUsers = [
+        { id: 1, email: 'customer@demo.com', password: 'demo123' },
+        { id: 2, email: 'vendor@demo.com', password: 'demo123' },
+        { id: 3, email: 'admin@demo.com', password: 'demo123' }
+      ];
+
+      // Find user in both arrays
+      let userData = null;
+      let userIndex = -1;
       
-      // Update password
-      registeredUsers[userIndex] = {
-        ...currentUser,
-        password: newPassword,
-        updatedAt: new Date().toISOString()
-      };
-      
+      // First check registered users
+      userIndex = registeredUsers.findIndex(u => u.email === user.email);
+      if (userIndex !== -1) {
+        userData = registeredUsers[userIndex];
+      } else {
+        // Check mock users
+        const mockUser = mockUsers.find(u => u.email === user.email);
+        if (mockUser) {
+          userData = mockUser;
+        }
+      }
+
+      if (!userData) {
+        return { success: false, error: 'User not found' };
+      }
+
+      // Verify current password
+      if (userData.password !== currentPassword) {
+        return { success: false, error: 'Current password is incorrect' };
+      }
+
+      // Check if new password is same as current
+      if (currentPassword === newPassword) {
+        return { success: false, error: 'New password must be different from current password' };
+      }
+
+      // Update password in registeredUsers
+      if (userIndex === -1) {
+        // User not in registeredUsers, add them
+        const newUserEntry = {
+          ...user,
+          password: newPassword,
+          updatedAt: new Date().toISOString()
+        };
+        registeredUsers.push(newUserEntry);
+      } else {
+        // Update existing user
+        registeredUsers[userIndex] = {
+          ...registeredUsers[userIndex],
+          password: newPassword,
+          updatedAt: new Date().toISOString()
+        };
+      }
+
       localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
       
-      return { success: true, message: 'Password changed successfully' };
+      return { 
+        success: true, 
+        message: 'Password changed successfully! You can now login with your new password.' 
+      };
     } catch (error) {
       console.error('Change password error:', error);
-      return { success: false, error: 'Failed to change password' };
+      return { success: false, error: 'Failed to change password. Please try again.' };
+    }
+  };
+
+  const getAllShops = async () => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const registeredShops = JSON.parse(localStorage.getItem('registeredShops') || '[]');
+      return { success: true, shops: registeredShops };
+    } catch (error) {
+      console.error('Get shops error:', error);
+      return { success: false, error: 'Failed to get shops' };
+    }
+  };
+
+  const updateShopStatus = async (shopId, status) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update in registered shops list
+      const registeredShops = JSON.parse(localStorage.getItem('registeredShops') || '[]');
+      const shopIndex = registeredShops.findIndex(shop => shop.id === shopId);
+      
+      if (shopIndex !== -1) {
+        registeredShops[shopIndex] = {
+          ...registeredShops[shopIndex],
+          status: status,
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem('registeredShops', JSON.stringify(registeredShops));
+      }
+      
+      // Also update in registered users list
+      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      const userIndex = registeredUsers.findIndex(u => u.id === shopId);
+      
+      if (userIndex !== -1) {
+        registeredUsers[userIndex] = {
+          ...registeredUsers[userIndex],
+          shopStatus: status,
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+        
+        // Update current user if it's the same user
+        if (user && user.id === shopId) {
+          setUser(prev => ({ ...prev, shopStatus: status }));
+          localStorage.setItem('pos-user', JSON.stringify({ ...user, shopStatus: status }));
+        }
+      }
+      
+      return { success: true, message: `Shop status updated to ${status}` };
+    } catch (error) {
+      console.error('Update shop status error:', error);
+      return { success: false, error: 'Failed to update shop status' };
+    }
+  };
+
+  const verifyShop = async (shopId) => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update in registered shops list
+      const registeredShops = JSON.parse(localStorage.getItem('registeredShops') || '[]');
+      const shopIndex = registeredShops.findIndex(shop => shop.id === shopId);
+      
+      if (shopIndex !== -1) {
+        registeredShops[shopIndex] = {
+          ...registeredShops[shopIndex],
+          verified: true,
+          status: 'active',
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem('registeredShops', JSON.stringify(registeredShops));
+      }
+      
+      // Also update in registered users list
+      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      const userIndex = registeredUsers.findIndex(u => u.id === shopId);
+      
+      if (userIndex !== -1) {
+        registeredUsers[userIndex] = {
+          ...registeredUsers[userIndex],
+          shopVerified: true,
+          shopStatus: 'active',
+          updatedAt: new Date().toISOString()
+        };
+        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+        
+        // Update current user if it's the same user
+        if (user && user.id === shopId) {
+          setUser(prev => ({ ...prev, shopVerified: true, shopStatus: 'active' }));
+          localStorage.setItem('pos-user', JSON.stringify({ ...user, shopVerified: true, shopStatus: 'active' }));
+        }
+      }
+      
+      return { success: true, message: 'Shop verified successfully' };
+    } catch (error) {
+      console.error('Verify shop error:', error);
+      return { success: false, error: 'Failed to verify shop' };
     }
   };
 
@@ -249,8 +483,12 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     register,
+    registerShop,
     updateProfile,
-    changePassword, // Add this to the context value
+    changePassword,
+    getAllShops,
+    updateShopStatus,
+    verifyShop,
     isAuthenticated: !!user
   };
 

@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import './UserProfile.css';
 
 const UserProfile = () => {
-  const { user, logout, updateProfile } = useAuth();
+  const { user, logout, updateProfile, changePassword } = useAuth();
   const navigate = useNavigate();
   
   const [isEditing, setIsEditing] = useState(false);
@@ -80,49 +80,51 @@ const UserProfile = () => {
     }
   };
 
-  // In UserProfile.jsx, update the handleChangePassword function:
+  const handleChangePassword = async () => {
+    // Clear previous messages
+    setMessage({ type: '', text: '' });
 
-const handleChangePassword = async () => {
-  // Validate passwords
-  if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
-    setMessage({ type: 'error', text: 'All password fields are required' });
-    return;
-  }
-
-  if (passwordData.newPassword.length < 6) {
-    setMessage({ type: 'error', text: 'New password must be at least 6 characters' });
-    return;
-  }
-
-  if (passwordData.newPassword !== passwordData.confirmPassword) {
-    setMessage({ type: 'error', text: 'New passwords do not match' });
-    return;
-  }
-
-  setIsLoading(true);
-  try {
-    // Use the AuthContext's changePassword function
-    const result = await showChangePassword(passwordData.currentPassword, passwordData.newPassword);
-    
-    if (result.success) {
-      setMessage({ type: 'success', text: result.message || 'Password changed successfully!' });
-      setShowChangePassword(false);
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      });
-      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-    } else {
-      setMessage({ type: 'error', text: result.error || 'Failed to change password' });
+    // Validate all fields
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setMessage({ type: 'error', text: 'All password fields are required' });
+      return;
     }
-  // eslint-disable-next-line no-unused-vars
-  } catch (error) {
-    setMessage({ type: 'error', text: 'Failed to change password. Please try again.' });
-  } finally {
-    setIsLoading(false);
-  }
-};
+
+    // Validate new password
+    if (passwordData.newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'New password must be at least 6 characters' });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Use the AuthContext's changePassword function
+      const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
+      
+      if (result.success) {
+        setMessage({ type: 'success', text: result.message || 'Password changed successfully!' });
+        setShowChangePassword(false);
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Failed to change password' });
+      }
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to change password. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -367,7 +369,7 @@ const handleChangePassword = async () => {
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
                       className="form-input"
-                      placeholder="Enter new password"
+                      placeholder="Enter new password (min. 6 characters)"
                     />
                   </div>
                   <div className="form-group">
@@ -398,6 +400,7 @@ const handleChangePassword = async () => {
                           newPassword: '',
                           confirmPassword: ''
                         });
+                        setMessage({ type: '', text: '' });
                       }}
                       className="cancel-btn"
                     >

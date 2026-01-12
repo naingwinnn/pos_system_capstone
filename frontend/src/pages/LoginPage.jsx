@@ -331,12 +331,19 @@ const LoginPage = () => {
               
               <div className="signup-link">
                 <p>
-                  Don't have an account?{' '}
+                  Are you a customer?{' '}
                   <Link to="/register" className="link">
-                    Sign up now
+                    Sign up now for customers
+                  </Link>
+                </p>
+                <p clsssName="signup-link">
+                  Are you a shop owner?{' '}
+                  <Link to="/shop-register" className="link shop-owner-link">
+                    Sign up for shop owners
                   </Link>
                 </p>
               </div>
+              
             </form>
           </div>
           

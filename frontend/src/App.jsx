@@ -237,7 +237,9 @@ import OrderConfirmation from './pages/OrderConfirmation';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import OrdersPage from './pages/OrdersPage'; // Create this
+import OrdersPage from './pages/OrdersPage'; 
+import ShopRegister from './pages/ShopRegister';
+import SecuritySettings from './components/customer/SecuritySettings';
 import './styles/App.css';
 
 function App() {
@@ -254,6 +256,8 @@ function App() {
               {/* Public Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/shop-register" element={<ShopRegister />} />
+              <Route path="/security" element={<SecuritySettings />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               
               {/* Protected Routes */}

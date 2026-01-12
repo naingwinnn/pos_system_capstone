@@ -164,7 +164,7 @@ const Header = () => {
                     
                     {user.role === 'admin' && (
                       <Link 
-                        to="/admin/dashboard" 
+                        to="//dashboard" 
                         className="dropdown-item"
                         onClick={() => setShowUserMenu(false)}
                       >
@@ -185,12 +185,12 @@ const Header = () => {
                     <Link 
                       to="/settings" 
                       className="dropdown-item"
-                      onClick={() => setShowUserMenu(false)}
+                      onClick={() => navigate('/security')}
                     >
                       <span className="icon">⚙️</span>
                       Settings
                     </Link>
-                    
+
                     <div className="dropdown-divider"></div>
                     
                     <button 
