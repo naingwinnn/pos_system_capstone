@@ -6,14 +6,16 @@ const PrivateRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  if (isLoading) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner"></div>
-        <p>Loading...</p>
-      </div>
-    );
-  }
+//   if (isLoading) {
+//     return (
+//       <div className="loading-screen">
+//         <div className="spinner"></div>
+//         <p>Loading...</p>
+//       </div>
+//     );
+//   }
+
+    if (isLoading) return <div> Loading ... </div>;
 
   if (!isAuthenticated) {
     // Redirect to login page, saving the location they tried to access
