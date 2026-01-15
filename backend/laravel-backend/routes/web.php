@@ -3,6 +3,10 @@
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
+// routes/web.php
+// Route::get('/login', function () {
+//     return 'Login page placeholder';
+// })->name('login');
 
 Route::get('/', function () {
     return view('welcome');

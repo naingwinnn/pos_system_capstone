@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
@@ -27,27 +29,66 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user,
-            'token' => Str::random(60)   // fake token, frontend just stores it
+            // 'token' => Str::random(60)   // fake token, frontend just stores it
         ]);
-    } 
+    }
+    // public function login(Request $request)
+    // {
+    //     \Log::info("LOGIN REQUEST:", $request->all());   // 👈 log frontend data
+
+    //     $request->validate([
+    //         'email'=>'required|email',
+    //         'password'=>'required'
+    //     ]);
+
+    //     $user = User::where('email', $request->email)->first();
+
+    //     if (!$user || !Hash::check($request->password, $user->password)) {
+    //         return response()->json(['message'=>'Invalid credentials'],401);
+    //     }
+
+
+
+    //     Auth::login($user);
+
+    //     // ✅ Log info to confirm
+    //     \Log::info('User logged in:', [
+    //     'user_id' => $user->id,
+    //     'email' => $user->email,
+    //     'session_id' => session()->getId(),  // shows session tied to cookie
+    //     'guard' => Auth::getDefaultDriver()
+    // ]);
+
+    //     return response()->json([
+    //         'user' => $user,
+    //         // 'token' => Str::random(60)
+    //     ]);
+    // }  
+
     public function login(Request $request)
     {
-        \Log::info("LOGIN REQUEST:", $request->all());   // 👈 log frontend data
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            return response([
+                'message' => 'Invalid credentials',
+            ], Response::HTTP_UNAUTHORIZED);
+        };
+        $user = Auth::user();
 
-        $request->validate([
-            'email'=>'required|email',
-            'password'=>'required'
-        ]);
+        $token = $user->createToken('token')->plainTextToken;
 
-        $user = User::where('email', $request->email)->first();
+        // $cookie =cookie('jwt' ,$token , minutes:60* 24);
+        // return response([
+        //     'message' => "success",
+        // ])->withCookie($cookie);
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message'=>'Invalid credentials'],401);
-        }
+            return response()->json([
+                'token' => $token,
+                'user' => $user,
+            ]);
+    }
+    public function user()
+    {
+      return Auth::user();
 
-        return response()->json([
-            'user' => $user,
-            // 'token' => Str::random(60)
-        ]);
-    }  
+    }
 }

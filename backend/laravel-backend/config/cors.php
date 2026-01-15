@@ -7,7 +7,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Allow both localhost and 127.0.0.1
-    'allowed_origins' => ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    'allowed_origins' => ['http://localhost:5173', 'http://127.0.0.1:5173','http://127.0.0.1:5500'],
 
     'allowed_origins_patterns' => [],
 
@@ -17,6 +17,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    'supports_credentials' => true,
 
 ];

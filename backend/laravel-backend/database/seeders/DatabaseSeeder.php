@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         Product::factory()->count(20)->create();
 
         // 4️⃣ Orders + OrderItems
-        Order::factory()->count(10)->create()->each(function($order){
+        Order::factory()->count(300)->create()->each(function($order){
             $products = Product::inRandomOrder()->take(fake()->numberBetween(1,3))->get();
             foreach($products as $product){
                 OrderItem::create([
