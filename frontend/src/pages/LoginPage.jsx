@@ -22,14 +22,12 @@ const LoginPage = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    // Email validation
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
     
-    // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
@@ -47,7 +45,6 @@ const LoginPage = () => {
       [name]: type === 'checkbox' ? checked : value
     }));
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -56,21 +53,16 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      return;
-    }
-    
+    if (!validateForm()) return;
+
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
       // Call authentication context
-      const success = await login(formData.email, formData.password);
-      
-      if (success) {
-        // Save remember me preference
+      const user = await login(formData.email, formData.password);
+
+      if (user) {
+        // Handle remember me
         if (formData.rememberMe) {
           localStorage.setItem('rememberMe', 'true');
           localStorage.setItem('userEmail', formData.email);
@@ -78,9 +70,13 @@ const LoginPage = () => {
           localStorage.removeItem('rememberMe');
           localStorage.removeItem('userEmail');
         }
-        
-        // Redirect to intended page or home
-        navigate(from, { replace: true });
+
+        // Redirect based on role
+        if (user.role === 'customer') {
+          navigate(from, { replace: true });
+        } else {
+          window.location.href = 'http://127.0.0.1:8000/admin';
+        }
       } else {
         setErrors({ general: 'Invalid email or password' });
       }
@@ -93,9 +89,7 @@ const LoginPage = () => {
   };
 
   const handleSocialLogin = (provider) => {
-    // Simulate social login
     console.log(`Logging in with ${provider}`);
-    // In a real app, this would redirect to OAuth provider
     navigate('/');
   };
 
@@ -120,7 +114,7 @@ const LoginPage = () => {
   return (
     <div className="login-page">
       <div className="login-container">
-        {/* Left Side - Illustration/Info */}
+        {/* Left Side */}
         <div className="login-left">
           <div className="login-brand">
             <div className="brand-logo">🛒</div>
@@ -170,7 +164,7 @@ const LoginPage = () => {
           </div>
         </div>
         
-        {/* Right Side - Login Form */}
+        {/* Right Side */}
         <div className="login-right">
           <div className="login-form-container">
             <div className="form-header">
@@ -187,9 +181,7 @@ const LoginPage = () => {
             
             <form onSubmit={handleSubmit} className="login-form" noValidate>
               <div className="form-group">
-                <label htmlFor="email" className="form-label">
-                  Email Address
-                </label>
+                <label htmlFor="email" className="form-label">Email Address</label>
                 <input
                   type="email"
                   id="email"
@@ -201,15 +193,11 @@ const LoginPage = () => {
                   disabled={isLoading}
                   autoComplete="email"
                 />
-                {errors.email && (
-                  <span className="error-message">{errors.email}</span>
-                )}
+                {errors.email && <span className="error-message">{errors.email}</span>}
               </div>
               
               <div className="form-group">
-                <label htmlFor="password" className="form-label">
-                  Password
-                </label>
+                <label htmlFor="password" className="form-label">Password</label>
                 <div className="password-input-group">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -231,9 +219,7 @@ const LoginPage = () => {
                     {showPassword ? '👁️' : '👁️‍🗨️'}
                   </button>
                 </div>
-                {errors.password && (
-                  <span className="error-message">{errors.password}</span>
-                )}
+                {errors.password && <span className="error-message">{errors.password}</span>}
               </div>
               
               <div className="form-options">
@@ -258,97 +244,10 @@ const LoginPage = () => {
                 </button>
               </div>
               
-              <button
-                type="submit"
-                className="login-btn"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <span className="spinner"></span>
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign In'
-                )}
+              <button type="submit" className="login-btn" disabled={isLoading}>
+                {isLoading ? <>Signing in...</> : 'Sign In'}
               </button>
-              
-              <div className="divider">
-                <span>or continue with</span>
-              </div>
-              
-              <div className="social-login">
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('google')}
-                  className="social-btn google"
-                  disabled={isLoading}
-                >
-                  <span className="social-icon">G</span>
-                  Google
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => handleSocialLogin('facebook')}
-                  className="social-btn facebook"
-                  disabled={isLoading}
-                >
-                  <span className="social-icon">f</span>
-                  Facebook
-                </button>
-              </div>
-              
-              <div className="demo-login">
-                <p className="demo-text">Try demo accounts:</p>
-                <div className="demo-buttons">
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('customer')}
-                    className="demo-btn customer"
-                    disabled={isLoading}
-                  >
-                    Customer Demo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('vendor')}
-                    className="demo-btn vendor"
-                    disabled={isLoading}
-                  >
-                    Vendor Demo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('admin')}
-                    className="demo-btn admin"
-                    disabled={isLoading}
-                  >
-                    Admin Demo
-                  </button>
-                </div>
-              </div>
-              
-              <div className="signup-link">
-                <p>
-                  Don't have an account?{' '}
-                  <Link to="/register" className="link">
-                    Sign up now
-                  </Link>
-                </p>
-              </div>
             </form>
-          </div>
-          
-          <div className="login-footer">
-            <p>By continuing, you agree to our</p>
-            <div className="footer-links">
-              <Link to="/terms" className="footer-link">Terms of Service</Link>
-              <span className="separator">•</span>
-              <Link to="/privacy" className="footer-link">Privacy Policy</Link>
-              <span className="separator">•</span>
-              <Link to="/cookies" className="footer-link">Cookie Policy</Link>
-            </div>
           </div>
         </div>
       </div>

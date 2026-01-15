@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    //login
     public function login(Request $request)
     {
         $request->validate([
@@ -23,8 +24,32 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'role' => $user->role,
+            'id' => $user->id,
             'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role
+        ]);
+    }
+
+    //  REGISTER
+    public function register(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:6'
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'customer', // 👈 default role
+        ]);
+
+        return response()->json([
+            'message' => 'Registration successful',
+            'user' => $user
         ]);
     }
 }
