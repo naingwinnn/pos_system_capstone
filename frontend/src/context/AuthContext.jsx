@@ -1,99 +1,74 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useContext } from "react";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    // const [isLoading, setIsLoading] = useState(true);
+    const [token, setToken] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const register = async (userData) => {
+    // Restore auth on refresh
+    useEffect(() => {
+        const savedUser = localStorage.getItem("user");
+        const savedToken = localStorage.getItem("token");
+
+        if (savedUser && savedToken) {
+            setUser(JSON.parse(savedUser));
+            setToken(savedToken);
+        }
+
+        setIsLoading(false);
+    }, []);
+
+    const login = async (email, password) => {
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/register", {
+            const res = await fetch("http://127.0.0.1:8000/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Accept": "application/json"
+                    "Accept": "application/json",
                 },
-                body: JSON.stringify(
-                    userData
-                )
+                body: JSON.stringify({ email, password }),
             });
 
             const data = await res.json();
-            console.log("request send successfully")
 
-            // fetch DOES NOT throw on 4xx / 5xx
             if (!res.ok) {
                 throw new Error(data.message || "Login failed");
             }
 
-            // Save user
-            setUser(data);
-            // localStorage.setItem("user", JSON.stringify(data));
+            // ✅ STORE BOTH
+            setUser(data.user);
+            setToken(data.token);
 
-            return data;   // same as axios res.data
+            localStorage.setItem("user", JSON.stringify(data.user));
+            localStorage.setItem("token", data.token);
+
+            return data;
         } catch (err) {
             console.error("Login failed:", err.message);
             return null;
         }
     };
-    
-   const login = async (email, password) => {
-    try {
-        const res = await fetch("http://127.0.0.1:8000/api/login", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "X-Requested-With": "XMLHttpRequest"
-            },
-            body: JSON.stringify({ email, password })
-        });
-        console.log("LOGIN STATUS:", res.status);
-
-        const data = await res.json();
-        console.log("🟢 LOGIN RESPONSE:", data);
-        
-        if (!res.ok) {
-            throw new Error(data.message || "Login failed");
-        }
-
-        if (!data.token) {
-            throw new Error("No token returned from backend");
-        }
-        console.log("✅ TOKEN RECEIVED:", data.token);
-        // ✅ Store token ONLY
-        localStorage.setItem("token", data.token);
-        setUser(data.user);
-
-        return data.user;; // login success
-    } catch (err) {
-        console.error("Login failed:", err.message);
-        return false;
-    }
-};
-
-
-    
 
     const logout = () => {
         setUser(null);
+        setToken(null);
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
     };
 
     return (
         <AuthContext.Provider
-
             value={{
                 user,
+                token,
                 isAuthenticated: !!user,
-                // isLoading,
-                register,
+                isLoading,
                 login,
                 logout,
             }}
         >
-
             {children}
         </AuthContext.Provider>
     );

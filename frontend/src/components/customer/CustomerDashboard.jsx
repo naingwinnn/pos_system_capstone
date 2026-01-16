@@ -12,7 +12,7 @@ const CustomerDashboard = () => {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    
+
     // Simulate API call delay
     const timer = setTimeout(() => {
       let filtered = shops;
