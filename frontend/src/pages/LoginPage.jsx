@@ -1,3 +1,4 @@
+/* ========== LoginPage.jsx ========== */
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -16,16 +17,14 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { login } = useAuth();
-
     const from = location.state?.from?.pathname || '/';
 
     const validateForm = () => {
         const newErrors = {};
-
         if (!formData.email.trim()) {
             newErrors.email = 'Email is required';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
+            newErrors.email = 'Please enter a valid email';
         }
 
         if (!formData.password) {
@@ -44,98 +43,32 @@ const LoginPage = () => {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
-
-        if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: '' }));
-        }
+        if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!validateForm()) return;
 
         setIsLoading(true);
 
-        // try {
-        //     // Call authentication context
-        //     const user = await login(formData.email, formData.password);
-
-        //     console.log("RAW BACKEND RESPONSE:", user);
-
-        //     if (user) {
-        //         // Handle remember me
-        //         if (formData.rememberMe) {
-        //             localStorage.setItem('rememberMe', 'true');
-        //             localStorage.setItem('userEmail', formData.email);
-        //         } else {
-        //             localStorage.removeItem('rememberMe');
-        //             localStorage.removeItem('userEmail');
-        //         }
-
-        //         // Redirect based on role
-        //         // if (user.user.role === 'customer') {
-        //         //     console.log("customer")
-        //         //     navigate(from, { replace: true });
-        //         // } else {
-        //         //     console.log("admin")
-        //         //     window.location.href = 'http://127.0.0.1:8000/admin';
-        //         // }
-        //         if (user.user.role === 'customer') {
-        //             console.log("customer")
-        //             navigate(from, { replace: true });
-        //         } else {
-        //             console.log("admin")
-        //             window.location.href = 'http://127.0.0.1:8000/admin';
-        //         }
-        //     } else {
-        //         setErrors({ general: 'Invalid email or password' });
-        //     }
-        // } catch (error) {
-        //     setErrors({ general: 'Login failed. Please try again.' });
-        //     console.error('Login error:', error);
-        // } finally {
-        //     setIsLoading(false);
-        // }
         try {
-            const success = await login(formData.email, formData.password);
-
-            console.log("LOGIN SUCCESS:", success);
-            console.log("TOKEN IN STORAGE:", localStorage.getItem("token"));
-
-            if (success) {
+            const result = await login({ 
+            email: formData.email, 
+            password: formData.password});
+            if (result.success) {
                 navigate(from, { replace: true });
+            } else {
+                setErrors({ general: result.error || 'Invalid credentials' });
             }
         } catch (err) {
-            console.error("Login error:", err);
-            setErrors({ general: "Login failed" });
+            console.error('Login error:', err);
+            setErrors({ general: 'Login failed. Please try again.' });
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleSocialLogin = (provider) => {
-        console.log(`Logging in with ${provider}`);
-        navigate('/');
-    };
-
-    const handleForgotPassword = () => {
-        navigate('/forgot-password');
-    };
-
-    const handleDemoLogin = (role) => {
-        const demoCredentials = {
-            customer: { email: 'customer@demo.com', password: 'demo123' },
-            vendor: { email: 'vendor@demo.com', password: 'demo123' },
-            admin: { email: 'admin@demo.com', password: 'demo123' }
-        };
-
-        setFormData({
-            email: demoCredentials[role].email,
-            password: demoCredentials[role].password,
-            rememberMe: false
-        });
-    };
     return (
         <div className="login-page">
             <div className="login-container">
@@ -146,7 +79,6 @@ const LoginPage = () => {
                         <h1>POS Marketplace</h1>
                         <p className="brand-tagline">Discover amazing shops and order with ease</p>
                     </div>
-
                     <div className="login-features">
                         <div className="feature">
                             <div className="feature-icon">🚀</div>
@@ -155,7 +87,6 @@ const LoginPage = () => {
                                 <p>Get your orders delivered in minutes</p>
                             </div>
                         </div>
-
                         <div className="feature">
                             <div className="feature-icon">🔒</div>
                             <div className="feature-text">
@@ -163,7 +94,6 @@ const LoginPage = () => {
                                 <p>100% secure and encrypted transactions</p>
                             </div>
                         </div>
-
                         <div className="feature">
                             <div className="feature-icon">⭐️</div>
                             <div className="feature-text">
@@ -172,26 +102,11 @@ const LoginPage = () => {
                             </div>
                         </div>
                     </div>
-
-                    <div className="login-stats">
-                        <div className="stat">
-                            <span className="stat-number">500+</span>
-                            <span className="stat-label">Active Shops</span>
-                        </div>
-                        <div className="stat">
-                            <span className="stat-number">10K+</span>
-                            <span className="stat-label">Happy Customers</span>
-                        </div>
-                        <div className="stat">
-                            <span className="stat-number">24/7</span>
-                            <span className="stat-label">Support</span>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Right Side */}
                 <div className="login-right">
-                    <div className="login-form-container">
+                    <div className="login-card">
                         <div className="form-header">
                             <h2>Welcome Back</h2>
                             <p>Sign in to your account to continue</p>
@@ -204,7 +119,7 @@ const LoginPage = () => {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="login-form" noValidate>
+                        <form onSubmit={handleSubmit} className="login-form">
                             <div className="form-group">
                                 <label htmlFor="email" className="form-label">Email Address</label>
                                 <input
@@ -213,10 +128,9 @@ const LoginPage = () => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    className={`form - input ${errors.email ? 'error' : ''}`}
+                                    className={`form-input ${errors.email ? 'error' : ''}`}
                                     placeholder="you@example.com"
                                     disabled={isLoading}
-                                    autoComplete="email"
                                 />
                                 {errors.email && <span className="error-message">{errors.email}</span>}
                             </div>
@@ -225,15 +139,14 @@ const LoginPage = () => {
                                 <label htmlFor="password" className="form-label">Password</label>
                                 <div className="password-input-group">
                                     <input
-                                        type={showPassword ? "text" : "password"}
+                                        type={showPassword ? 'text' : 'password'}
                                         id="password"
                                         name="password"
                                         value={formData.password}
                                         onChange={handleInputChange}
-                                        className={`form - input ${errors.password ? 'error' : ''}`}
+                                        className={`form-input ${errors.password ? 'error' : ''}`}
                                         placeholder="Enter your password"
                                         disabled={isLoading}
-                                        autoComplete="current-password"
                                     />
                                     <button
                                         type="button"
@@ -241,7 +154,7 @@ const LoginPage = () => {
                                         onClick={() => setShowPassword(!showPassword)}
                                         disabled={isLoading}
                                     >
-                                        {showPassword ? '👁' : '👁‍🗨'}
+                                        {showPassword ? '👁️' : '👁️‍🗨️'}
                                     </button>
                                 </div>
                                 {errors.password && <span className="error-message">{errors.password}</span>}
@@ -258,11 +171,10 @@ const LoginPage = () => {
                                     />
                                     <span className="checkbox-text">Remember me</span>
                                 </label>
-
                                 <button
                                     type="button"
-                                    onClick={handleForgotPassword}
                                     className="forgot-password"
+                                    onClick={() => navigate('/forgot-password')}
                                     disabled={isLoading}
                                 >
                                     Forgot password?
@@ -270,8 +182,21 @@ const LoginPage = () => {
                             </div>
 
                             <button type="submit" className="login-btn" disabled={isLoading}>
-                                {isLoading ? <>Signing in...</> : 'Sign In'}
+                                {isLoading ? (
+                                    <>
+                                        <span className="spinner"></span>
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    'Sign In'
+                                )}
                             </button>
+
+                            <div className="register-link">
+                                <p>
+                                    Don't have an account? <Link to="/register" className="link">Create one</Link>
+                                </p>
+                            </div>
                         </form>
                     </div>
                 </div>

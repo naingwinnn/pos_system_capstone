@@ -1,74 +1,74 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [token, setToken] = useState(localStorage.getItem('token') || null);
 
-    // Restore auth on refresh
-    useEffect(() => {
-        const savedUser = localStorage.getItem("user");
-        const savedToken = localStorage.getItem("token");
-
-        if (savedUser && savedToken) {
-            setUser(JSON.parse(savedUser));
-            setToken(savedToken);
-        }
-
-        setIsLoading(false);
-    }, []);
-
-    const login = async (email, password) => {
+    // ✅ REGISTER
+    const register = async (userData) => {
         try {
-            const res = await fetch("http://127.0.0.1:8000/api/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json",
-                },
-                body: JSON.stringify({ email, password }),
+            const response = await fetch('http://localhost:8000/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: userData.name,
+                    email: userData.email,
+                    password: userData.password,
+                    password_confirmation: userData.confirmPassword,
+                }),
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
-            if (!res.ok) {
-                throw new Error(data.message || "Login failed");
+            if (!response.ok) {
+                return { success: false, error: data.message || 'Registration failed' };
             }
 
-            // ✅ STORE BOTH
-            setUser(data.user);
-            setToken(data.token);
-
-            localStorage.setItem("user", JSON.stringify(data.user));
-            localStorage.setItem("token", data.token);
-
-            return data;
+            return { success: true };
         } catch (err) {
-            console.error("Login failed:", err.message);
-            return null;
+            console.error('Register error:', err);
+            return { success: false, error: 'Registration failed' };
         }
     };
 
+    // ✅ LOGIN
+    const login = async (userData) => {
+    try {
+        const response = await fetch('http://localhost:8000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData),
+        });
+
+        const data = await response.json();
+
+        // ✅ FIX: use data.error (not data.message)
+        if (!data.success) {
+            return { success: false, error: data.error || 'Login failed' };
+        }
+
+        localStorage.setItem('token', data.token);
+        setToken(data.token);
+        setUser(data.user);
+
+        return { success: true, user: data.user };
+    } catch (err) {
+        console.error('Login error:', err);
+        return { success: false, error: 'Login failed' };
+    }
+};
+
+
     const logout = () => {
+        localStorage.removeItem('token');
         setUser(null);
         setToken(null);
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
     };
 
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                token,
-                isAuthenticated: !!user,
-                isLoading,
-                login,
-                logout,
-            }}
-        >
+        <AuthContext.Provider value={{ user, token, register, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
