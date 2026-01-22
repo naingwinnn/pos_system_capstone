@@ -66,7 +66,7 @@ class ProductFactory extends Factory
             'Chinese Food'   => ['Dumplings', 'Spring Rolls', 'Spicy Chicken'],
             'Thai Cuisine'   => ['Pad Thai', 'Green Curry', 'Tom Yum Soup'],
             'Fast Foods'     => ['Burger', 'Fries', 'Hotdog'],
-            'Italian Foods'  => ['Margherita Pizza', 'Spaghetti Carbonara', 'Lasagna'],
+            'Italian Food'  => ['Margherita Pizza', 'Spaghetti Carbonara', 'Lasagna'],
             'Seafood'        => ['Grilled Salmon', 'Shrimp Fried Rice', 'Lobster Bisque'],
             'Japanese Food'  => ['Sushi', 'Ramen', 'Tempura'],
             'Vegan'          => ['Vegan Burger', 'Quinoa Salad', 'Smoothie Bowl'],

@@ -21,7 +21,7 @@
 //         'Chinese Food'    => ['Shirt', 'Jeans', 'Jacket'],
 //         'Thai Cuisine'   => ['Fruits', 'Vegetables', 'Snacks'],
 //         'Fast Foods'       => ['Novel', 'Magazine', 'Comic'],
-//         'Italian Foods'      => ['Lipstick', 'Perfume', 'Skincare'],
+//         'Italian Food'      => ['Lipstick', 'Perfume', 'Skincare'],
 //         'Seafood'      => ['Lipstick', 'Perfume', 'Skincare'],
 //         'Japanese Food'      => ['Lipstick', 'Perfume', 'Skincare'],
 //         'Vegan'      => ['Lipstick', 'Perfume', 'Skincare'],
@@ -120,7 +120,7 @@ class ShopFactory extends Factory
         // Shop categories
         $categories = [
             'Myanmar Food', 'Chinese Food', 'Thai Cuisine', 'Fast Foods', 
-            'Italian Foods', 'Seafood', 'Japanese Food', 'Vegan'
+            'Italian Food', 'Seafood', 'Japanese Food', 'Vegan'
         ];
 
         return [

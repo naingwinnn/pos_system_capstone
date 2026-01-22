@@ -53,7 +53,7 @@ const OrdersPage = ({ loggedInUser }) => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'delivered': return '#10b981';
+            case 'completed': return '#28A745';
             case 'preparing': return '#f59e0b';
             case 'on-the-way': return '#3b82f6';
             case 'cancelled': return '#ef4444';
@@ -63,7 +63,7 @@ const OrdersPage = ({ loggedInUser }) => {
 
     const getStatusIcon = (status) => {
         switch (status) {
-            case 'delivered': return '✓';
+            case 'completed': return '✓';
             case 'preparing': return '👨‍🍳';
             case 'on-the-way': return '🚚';
             case 'cancelled': return '✕';

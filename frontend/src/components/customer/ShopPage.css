@@ -170,7 +170,7 @@
 
 /* ========== HEADER SECTION ========== */
 .shop-header {
-  background: var(--bg-primary);
+  background: linear-gradient(135deg, #00F5A0 0%, #00D9F5 100%) !important;
   border-radius: var(--radius-2xl);
   padding: 2.5rem;
   margin-bottom: 2rem;
@@ -351,7 +351,7 @@
 
 .shop-header-info h1 {
   font-size: 2.5rem;
-  color: var(--text-primary);
+  color: rgb(64, 126, 76) !important;
   margin: 0 0 1rem 0;
   font-weight: 700;
   line-height: 1.2;
@@ -359,7 +359,7 @@
 }
 
 .shop-description {
-  color: var(--text-secondary);
+  color: rgb(64, 126, 76) !important;
   font-size: 1.1rem;
   line-height: 1.7;
   margin: 0 0 2rem 0;

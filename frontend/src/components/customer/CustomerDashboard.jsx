@@ -297,6 +297,8 @@ const CustomerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Utility function to convert to Title Case
+
   // Icons for categories
   const categoryIcons = { 
     food: "🍔",
@@ -452,8 +454,8 @@ const CustomerDashboard = () => {
               }`}
               onClick={() => setSelectedCategory(category)}
             >
-              {categoryIcons[category?.toLowerCase()] || "🏪"}{" "}
-              {category.toUpperCase()}
+              {categoryIcons[category?.toLowerCase()] || "🍛"}{" "}
+              {category}
             </button>
           ))}
         </div>

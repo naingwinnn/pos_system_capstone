@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
 
         $categories = [
             'Myanmar Food', 'Chinese Food', 'Thai Cuisine', 'Fast Foods',
-            'Italian Foods', 'Seafood', 'Japanese Food', 'Vegan'
+            'Italian Food', 'Seafood', 'Japanese Food', 'Vegan'
         ];
 
         // pick 8 shop owners for first 8 shops
@@ -105,8 +105,8 @@ class DatabaseSeeder extends Seeder
             'Myanmar Food'   => ['Pork Curry', 'Chicken Curry', 'LatPhatThoke'],
             'Chinese Food'   => ['Dumplings', 'Spring Rolls', 'Spicy Chicken'],
             'Thai Cuisine'   => ['Pad Thai', 'Green Curry', 'Tom Yum Soup'],
-            'Fast Foods'     => ['Burger', 'Fries', 'Hotdog'],
-            'Italian Foods'  => ['Margherita Pizza', 'Spaghetti Carbonara', 'Lasagna'],
+            'Fast Food'     => ['Burger', 'Fries', 'Hotdog'],
+            'Italian Food'  => ['Margherita Pizza', 'Spaghetti Carbonara', 'Lasagna'],
             'Seafood'        => ['Grilled Salmon', 'Shrimp Fried Rice', 'Lobster Bisque'],
             'Japanese Food'  => ['Sushi', 'Ramen', 'Tempura'],
             'Vegan'          => ['Vegan Burger', 'Quinoa Salad', 'Smoothie Bowl'],
