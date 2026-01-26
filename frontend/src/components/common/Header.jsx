@@ -88,12 +88,12 @@ const Header = () => {
             >
               🏠 Home
             </Link>
-            <Link 
+            {/* <Link 
               to="/shops" 
               className={`nav-link ${isActive('/shops') ? 'active' : ''}`}
             >
               🏪 Shops
-            </Link>
+            </Link> */}
             <Link 
               to="/orders" 
               className={`nav-link ${isActive('/orders') ? 'active' : ''}`}
